@@ -35,6 +35,8 @@ MacBook, or Windows laptop, with **no Wi-Fi required** to operate it.
   for field time-sync without internet
 - Your radio's CAT/audio interface (varies by rig)
 
+![Pi in an aluminum case with a USB-C power+data splitter attached — "Power" and "PC" ports visible](images/pi-splitter-setup.jpeg)
+
 ## Base OS
 
 [DietPi](https://dietpi.com/) on Debian (Raspberry Pi build) — lightweight,
