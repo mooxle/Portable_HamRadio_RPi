@@ -27,6 +27,10 @@ MacBook, or Windows laptop, with **no Wi-Fi required** to operate it.
   on a Pi 4.
 - microSD card (16GB+)
 - USB-C cable (data-capable, not charge-only) to the controlling device
+- **USB-C power+data splitter** — needed to actually run the setup below:
+  the same port can't reliably take power *and* gadget-mode data at once
+  over a plain cable. See
+  ["Power and data over the same USB-C port"](docs/usb-gadget-ethernet.md#power-and-data-over-the-same-usb-c-port).
 - Optional: USB GPS receiver (u-blox-based dongles work well with `gpsd`)
   for field time-sync without internet
 - Your radio's CAT/audio interface (varies by rig)
