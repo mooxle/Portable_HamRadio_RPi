@@ -113,9 +113,41 @@ a look at the output).
   installed, downloads and installs newer `.deb`s when found. Adjust the
   `WSJTX_ARCH_SUFFIX`/`GT_ARCH` variables at the top for non-ARM64 systems.
   Run: `./update_radio_apps.sh`.
+### GPS hardware and how it's wired up
+
+Tested with a cheap **u-blox 7-chipset USB GPS dongle** (widely sold under
+many different brand names, usually a few euros/dollars) — any GPS receiver
+that speaks standard NMEA 0183 over USB should work the same way, since
+`gpsd` (not this project) is what actually understands the protocol.
+
+- The dongle enumerates as a **USB CDC-ACM serial device** — no special
+  driver needed. On the Pi it shows up as `/dev/ttyACM0` (as long as
+  nothing else claims that device node first).
+- **Find yours:** plug it in, then run `lsusb` (genuine u-blox USB
+  receivers commonly register under u-blox AG's own vendor ID `1546`,
+  though cheap dongles vary) and `dmesg | tail` right after plugging in —
+  the kernel log line will tell you the exact `/dev/ttyACM*` (or
+  `/dev/ttyUSB*` for dongles using a separate FTDI/CP210x USB-serial
+  bridge chip instead of a native USB GPS chipset) it landed on.
+- **If you also have another USB-serial device** (e.g. a rig's CAT
+  interface), the device path can shift depending on what's plugged in and
+  in which order — don't assume `/dev/ttyACM0` blindly, check `dmesg`
+  after plugging the GPS in specifically. Both scripts below hardcode
+  `/dev/ttyACM0` — edit the `DEVICE = "/dev/ttyACM0"` (`gpsmon.py`) /
+  `DEVICE="/dev/ttyACM0"` (`gpssync.sh`) line at the top of each if yours
+  differs.
+- **Sanity-check the GPS independently of these scripts** with `cgps -s`
+  (comes with `gpsd-clients`) — it talks straight to `gpsd` and shows raw
+  fix/satellite data, useful for confirming the dongle itself is working
+  before troubleshooting the custom scripts.
+- Both scripts start `gpsd` themselves (`sudo gpsd $DEVICE -n`) if it isn't
+  already running, and stop it again on exit/Ctrl-C — you don't need to
+  manage the `gpsd` service separately.
+
+### Scripts
+
 - **`gpsmon.py`** — live terminal GPS monitor (fix status, position,
-  altitude, speed, satellite count). Needs `gpsd`/`gpsd-clients`, a GPS
-  dongle at (by default) `/dev/ttyACM0`. Run: `python3 gpsmon.py`.
+  altitude, speed, satellite count). Run: `python3 gpsmon.py`.
 - **`gpssync.sh`** — sets the system clock precisely from a GPS fix, shows
   the correction delta in ms. Useful when there's no internet in the
   field. Run: `./gpssync.sh`.
