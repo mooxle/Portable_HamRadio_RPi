@@ -79,7 +79,7 @@ while True:
         consecutive = 0
         found_stations += 1
         count = int(resp.get("exported_qsos", 0))
-        adif  = resp.get("adif", "").strip()
+        adif  = (resp.get("adif") or "").strip()
         print(f"[OK]   Station {station_id:>3}: {count:>5} QSOs")
         total_qsos += count
         if adif:
