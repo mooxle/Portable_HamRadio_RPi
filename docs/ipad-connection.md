@@ -1,8 +1,12 @@
 # Connecting from an iPad (or Mac/Windows) over USB-C
 
 Once the [USB-C Ethernet gadget](usb-gadget-ethernet.md) is set up, the Pi
-is reachable at `192.168.7.2` over the cable — no Wi-Fi needed. Two tools
-cover everything you need:
+is reachable at `192.168.7.2` over the cable — no Wi-Fi needed. (At home
+over Wi-Fi instead of the USB-C cable, use `<hostname>.local` or your
+router's DHCP list — see
+["Finding the Pi's IP address"](../README.md#finding-the-pis-ip-address)
+in the main README; the steps below are otherwise identical, just swap the
+address.) Two tools cover everything you need:
 
 - **SSH** (Termius) — for scripting: switching Wi-Fi networks, running the
   GPS time-sync script, checking logs, rebooting.

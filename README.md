@@ -61,6 +61,23 @@ headless-friendly, has a built-in first-boot automation file
 7. **Connect from your tablet/phone/laptop** —
    [`docs/ipad-connection.md`](docs/ipad-connection.md).
 
+## Finding the Pi's IP address
+
+- **Over USB-C (in the field):** always fixed — **`192.168.7.2`** (see
+  [`docs/usb-gadget-ethernet.md`](docs/usb-gadget-ethernet.md)). No lookup
+  needed, ever — that's the whole point of the static gadget IP.
+- **Over home Wi-Fi:** DHCP-assigned, so it can change. Two ways to find it:
+  1. **mDNS/Bonjour hostname (easiest):** `avahi-daemon` is already part of
+     this setup — it gets restarted on every Wi-Fi switch (see
+     [`config/bash_aliases_wifi.sh`](config/bash_aliases_wifi.sh)) — so
+     `ping <hostname>.local` or `ssh <user>@<hostname>.local` should just
+     work from a Mac, iPhone/iPad, Linux box, or Windows with
+     Bonjour/iTunes installed. `<hostname>` is whatever you set in
+     `dietpi.txt` (e.g. if the hostname is `hampi`, use `hampi.local`).
+  2. **Router's DHCP client list** — log into your router's admin page and
+     look for the Pi's hostname among connected devices/DHCP leases, if
+     mDNS isn't available on your particular network or client device.
+
 ## Software
 
 - **WSJT-X** — official releases (Windows/macOS/Linux, including
