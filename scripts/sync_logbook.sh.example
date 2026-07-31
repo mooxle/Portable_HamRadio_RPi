@@ -1,0 +1,124 @@
+#!/bin/bash
+# =====================================================
+# Logbook -> GridTracker ADIF sync (example)
+# Originally written against a Wavelog (wavelog.org) instance's REST API.
+# Adapt the api_post() calls below to whatever self-hosted or cloud
+# logging platform you actually use -- this is one worked example of the
+# pattern, not a drop-in requirement.
+# =====================================================
+
+# --- CONFIG ---
+LOGBOOK_URL="https://your-logbook.example.com"
+API_KEY="<YOUR_API_KEY_HERE>"
+TARGET_DIR="$HOME/.local/share/WSJT-X"
+TARGET_FILE="$TARGET_DIR/wsjtx_log.adi"
+MISS_LIMIT=30
+# ---------------------
+
+mkdir -p "$TARGET_DIR"
+
+echo "========================================"
+echo " Logbook -> GridTracker sync"
+echo "========================================"
+
+if [ -f "$TARGET_FILE" ]; then
+    cp "$TARGET_FILE" "${TARGET_FILE}.bak"
+    echo "[INFO] Backup created"
+fi
+
+export LOGBOOK_URL API_KEY TARGET_FILE MISS_LIMIT
+
+python3 - << 'PYEOF'
+import subprocess, json, os, sys
+
+LOGBOOK_URL = os.environ["LOGBOOK_URL"]
+API_KEY     = os.environ["API_KEY"]
+TARGET_FILE = os.environ["TARGET_FILE"]
+MISS_LIMIT  = int(os.environ["MISS_LIMIT"])
+
+def api_post(endpoint, payload):
+    """curl-based POST -- guaranteed to behave like it does in a terminal."""
+    url = f"{LOGBOOK_URL}/index.php/api/{endpoint}"
+    result = subprocess.run([
+        "curl", "-s",
+        "-w", "\n%{http_code}",
+        "-X", "POST", url,
+        "-H", "Content-Type: application/json",
+        "-H", "Accept: application/json",
+        "-d", json.dumps(payload)
+    ], capture_output=True, text=True, timeout=60)
+
+    *body_lines, code_line = result.stdout.split("\n")
+    body = "\n".join(body_lines)
+    code = int(code_line.strip()) if code_line.strip().isdigit() else 0
+
+    try:
+        return code, json.loads(body)
+    except json.JSONDecodeError:
+        return code, {"_raw": body[:200]}
+
+# ── Walk station IDs (adapt to your platform's API shape) ────────────────
+print(f"[INFO] Searching stations (stop after {MISS_LIMIT} consecutive empty IDs)...")
+
+adif_parts     = []
+total_qsos     = 0
+found_stations = 0
+consecutive    = 0
+station_id     = 0
+
+while True:
+    station_id += 1
+    code, resp = api_post("get_contacts_adif", {
+        "key":         API_KEY,
+        "station_id":  station_id,
+        "fetchfromid": 0
+    })
+
+    status = resp.get("status", "")
+    if code == 200 and status == "successful":
+        consecutive = 0
+        found_stations += 1
+        count = int(resp.get("exported_qsos", 0))
+        adif  = resp.get("adif", "").strip()
+        print(f"[OK]   Station {station_id:>3}: {count:>5} QSOs")
+        total_qsos += count
+        if adif:
+            adif_parts.append(adif)
+    else:
+        consecutive += 1
+        if consecutive >= MISS_LIMIT:
+            print(f"[INFO] {MISS_LIMIT} consecutive empty IDs -> stopping (last ID: {station_id})")
+            break
+
+if found_stations == 0:
+    print("[ERROR] No stations found.")
+    sys.exit(1)
+
+if not adif_parts:
+    print("[WARN] Stations found, but no QSOs present.")
+    sys.exit(0)
+
+# ── Merge ADIF ────────────────────────────────────────────────────────────
+combined = adif_parts[0] + "\n"
+for part in adif_parts[1:]:
+    eoh = part.upper().find("<EOH>")
+    combined += (part[eoh+5:].strip() if eoh != -1 else part) + "\n"
+
+with open(TARGET_FILE, "w") as f:
+    f.write(combined)
+
+print("")
+print("========================================")
+print(f"[OK] {found_stations} station(s), {total_qsos} QSOs exported")
+print(f"[OK] Saved to: {TARGET_FILE}")
+print("[OK] GridTracker will pick this up automatically on next launch.")
+print("========================================")
+PYEOF
+
+STATUS=$?
+if [ $STATUS -ne 0 ]; then
+    [ -f "${TARGET_FILE}.bak" ] && mv "${TARGET_FILE}.bak" "$TARGET_FILE" && echo "[INFO] Backup restored."
+    exit 1
+fi
+rm -f "${TARGET_FILE}.bak"
+exit 0

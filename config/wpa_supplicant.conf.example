@@ -1,0 +1,29 @@
+country=DE
+ctrl_interface=DIR=/run/wpa_supplicant GROUP=netdev
+update_config=1
+
+# Network 0: home Wi-Fi -- "wifi-home" alias selects select_network 0
+network={
+    ssid="YOUR_HOME_WIFI_SSID"
+    scan_ssid=1
+    key_mgmt=WPA-PSK
+    psk="YOUR_HOME_WIFI_PASSWORD"
+    priority=10
+}
+
+# Network 1: phone hotspot -- "wifi-hotspot" alias selects select_network 1
+# NOTE: iPhone Personal Hotspot needs "Maximize Compatibility" enabled
+# (Settings -> Personal Hotspot), otherwise the Pi may fail to connect
+# reliably -- that setting forces 2.4GHz/WPA2, far more broadly compatible
+# with simple Wi-Fi chips. If your hotspot name has special characters
+# (e.g. a curly apostrophe), wpa_supplicant may store the SSID as a hex
+# string instead of plain text in the real config -- that's normal, not
+# an error.
+network={
+    ssid="YOUR_PHONE_HOTSPOT_NAME"
+    scan_ssid=1
+    key_mgmt=WPA-PSK SAE
+    ieee80211w=1
+    psk="YOUR_PHONE_HOTSPOT_PASSWORD"
+    priority=5
+}
