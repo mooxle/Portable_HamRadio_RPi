@@ -89,8 +89,9 @@ headless-friendly, has a built-in first-boot automation file
   so GridTracker2 can pick up decodes.
   > If you have a specific community-modified WSJT-X build you prefer
   > (e.g. tweaked UI layouts for small touchscreens), that obviously works
-  > too — just track its source yourself, since it won't show up in
-  > `apt upgrade` and isn't something this guide can vouch for.
+  > too — just track its source yourself, since `update_radio_apps.sh`
+  > (see Scripts below) is written against the official releases and would
+  > overwrite a modified build with the official one.
 - **GridTracker2** — official downloads (including Linux ARM64/Raspberry
   Pi `.deb`) at
   <https://gridtracker.org/index.php/downloads/gridtracker-downloads>.
@@ -100,9 +101,18 @@ headless-friendly, has a built-in first-boot automation file
 
 Neither app comes from an apt repository, so regular `sudo apt upgrade`
 won't ever touch them — that's expected, not a bug.
+[`scripts/update_radio_apps.sh`](scripts/update_radio_apps.sh) checks both
+against their official sources and installs newer versions when found (run
+it by hand whenever you want to check — no cron, package installs deserve
+a look at the output).
 
 ## Scripts (`scripts/`)
 
+- **`update_radio_apps.sh`** — checks the official WSJT-X (GitHub releases
+  API) and GridTracker2 (downloads page, best-effort) sources against what's
+  installed, downloads and installs newer `.deb`s when found. Adjust the
+  `WSJTX_ARCH_SUFFIX`/`GT_ARCH` variables at the top for non-ARM64 systems.
+  Run: `./update_radio_apps.sh`.
 - **`gpsmon.py`** — live terminal GPS monitor (fix status, position,
   altitude, speed, satellite count). Needs `gpsd`/`gpsd-clients`, a GPS
   dongle at (by default) `/dev/ttyACM0`. Run: `python3 gpsmon.py`.
