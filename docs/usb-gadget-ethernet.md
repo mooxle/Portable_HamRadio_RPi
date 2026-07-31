@@ -53,3 +53,5 @@ example: [Waveshare Type-C splitter for power and data (USB 2.0, aluminum
 housing)](https://www.berrybase.de/en/waveshare-type-c-splitter-fuer-strom-und-daten-usb-2.0-aluminiumgehaeuse-3x-usb-c-pikvm-5v)
 — any splitter built for the same "USB gadget + independent power" use
 case should work the same way.
+
+![Pi in an aluminum case with a USB-C power+data splitter attached — "Power" and "PC" ports visible](../images/pi-splitter-setup.jpeg)
